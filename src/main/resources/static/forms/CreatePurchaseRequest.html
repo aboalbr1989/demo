@@ -18,7 +18,7 @@
                            typeahead-template-url="customTemplate.html"
                            class="form-control"
                            typeahead-no-results="noResults"
-                           typeahead-loading="loadingModels">
+                           typeahead-loading="loadingModels" required>
 
                     <i ng-show="loadingModels" class="glyphicon glyphicon-refresh"></i>
                     <div ng-show="noResults">
@@ -26,7 +26,7 @@
                     </div>
                 </td>
                 <td>
-                    <input ng-model="item.qty" type="number" class="form-control">
+                    <input ng-model="item.qty" type="number" class="form-control" min="1">
                 </td>
                 <td>
                     <button ng-click="items.splice($index,1)"
@@ -52,10 +52,11 @@
             $scope.getModels = function (value) {
                 return $http.get("/api/models", {
                     params: {
-                        q: value
+                        q: value,
+                        size: 10
                     }
                 }).then(function (response) {
-                    return response.data;
+                    return response.data.content;
                 })
             };
 
@@ -67,6 +68,7 @@
                 if (!$scope.items) {
                     variableManager.destroyVariable("request");
                     $scope.items = [];
+                    $scope.newItem();
                     variableManager.createVariable({
                         name: 'request',
                         type: 'json',

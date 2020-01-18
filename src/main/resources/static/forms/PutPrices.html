@@ -35,17 +35,13 @@
     <script cam-script type="text/form-script">
         inject(["$http", function ($http) {
             const variableManager = camForm.variableManager;
-
             camForm.on('form-loaded', function () {
                 variableManager.fetchVariable("request");
             });
             camForm.on('variables-fetched', function () {
                 $scope.items = variableManager.variableValue("request");
             });
-
         }]);
-
-
     </script>
 
 </form>
