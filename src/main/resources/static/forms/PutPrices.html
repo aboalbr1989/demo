@@ -1,0 +1,53 @@
+<form role="form">
+    <div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th width="30%">Type</th>
+                <th width="20%">Qty</th>
+                <th width="30%">Unit Price</th >
+                <th width="20%">Total Price</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="item in items">
+                <td>
+                    {{item.model.brand}} {{item.model.model}} {{item.model.color}}
+                </td>
+                <td>
+                    {{item.qty}}
+                </td>
+                <td>
+                    <input type="number" ng-model="item.unit_price" class="form-control" required>
+                </td>
+                <td ng-if="item.unit_price">
+                    {{item.qty * item.unit_price}}
+                </td>
+                <td ng-if="!item.unit_price">
+                    0
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <script cam-script type="text/form-script">
+        inject(["$http", function ($http) {
+            const variableManager = camForm.variableManager;
+
+            camForm.on('form-loaded', function () {
+                variableManager.fetchVariable("request");
+            });
+            camForm.on('variables-fetched', function () {
+                $scope.items = variableManager.variableValue("request");
+            });
+
+        }]);
+
+
+    </script>
+
+</form>
+
+

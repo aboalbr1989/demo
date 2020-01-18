@@ -1,0 +1,90 @@
+<form role="form">
+    <div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th width="45%">Type</th>
+                <th width="45%">Qty</th>
+                <th width="10%">
+                    <button ng-click="newItem()" class="btn btn-sm btn-success glyphicon glyphicon-plus"></button>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="item in items">
+                <td>
+                    <input type="text" ng-model="item.model"
+                           uib-typeahead="model as (model.brand +' '+model.model+' '+model.color) for model in getModels($viewValue)"
+                           typeahead-template-url="customTemplate.html"
+                           class="form-control"
+                           typeahead-no-results="noResults"
+                           typeahead-loading="loadingModels">
+
+                    <i ng-show="loadingModels" class="glyphicon glyphicon-refresh"></i>
+                    <div ng-show="noResults">
+                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    </div>
+                </td>
+                <td>
+                    <input ng-model="item.qty" type="number" class="form-control">
+                </td>
+                <td>
+                    <button ng-click="items.splice($index,1)"
+                            class="btn btn-sm btn-primary glyphicon glyphicon-trash"></button>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <script cam-script type="text/form-script">
+        inject(["$http", function ($http) {
+            const variableManager = camForm.variableManager;
+
+            $scope.newItem = function () {
+                $scope.items.push({
+                    model: null,
+                    qty: 0
+                })
+            };
+
+            $scope.getModels = function (value) {
+                return $http.get("/api/models", {
+                    params: {
+                        q: value
+                    }
+                }).then(function (response) {
+                    return response.data;
+                })
+            };
+
+            camForm.on('form-loaded', function () {
+                variableManager.fetchVariable("request");
+            });
+            camForm.on('variables-fetched', function () {
+                $scope.items = variableManager.variableValue("request");
+                if (!$scope.items) {
+                    variableManager.destroyVariable("request");
+                    $scope.items = [];
+                    variableManager.createVariable({
+                        name: 'request',
+                        type: 'json',
+                        value: $scope.items
+                    })
+                }
+            })
+
+        }]);
+
+
+    </script>
+    <script type="text/ng-template" id="customTemplate.html">
+        <a>
+            <span ng-bind-html="(match.model.brand+' '+match.model.model+' '+match.model.color) | uibTypeaheadHighlight:query"></span>
+        </a>
+    </script>
+
+</form>
+
+

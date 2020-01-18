@@ -1,0 +1,8 @@
+camunda:
+  bpm:
+    admin-user:
+      id: admin
+      password: admin
+      email: admin@emmatel.sy
+      first-name: Admin
+      last-name: Admin
