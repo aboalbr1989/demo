@@ -1,0 +1,47 @@
+<form role="form">
+    <div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th width="30%">Type</th>
+                <th width="20%">Qty</th>
+                <th width="20%">Received</th>
+                <th width="20%">Remaining</th>
+
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="item in items">
+                <td>
+                    {{item.model.brand}} {{item.model.model}} {{item.model.color}}
+                </td>
+                <td>
+                    {{item.qty}}
+                </td>
+                <td>
+                    {{item.received}}
+                </td>
+                <td>
+                    {{item.qty - item.received}}
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <script cam-script type="text/form-script">
+        inject(["$http", function ($http) {
+            const variableManager = camForm.variableManager;
+            camForm.on('form-loaded', function () {
+                variableManager.fetchVariable("request");
+            });
+            camForm.on('variables-fetched', function () {
+                $scope.items = variableManager.variableValue("request");
+            });
+        }]);
+    </script>
+
+</form>
+
+

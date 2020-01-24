@@ -1,0 +1,60 @@
+<form role="form">
+    <div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th width="30%">Brand</th>
+                <th width="30%">Model</th>
+                <th width="30%">Color</th>
+                <th width="10%">
+                    <button ng-click="newItem()" class="btn btn-sm btn-success glyphicon glyphicon-plus"></button>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="item in items">
+                <td>
+                    <input ng-model="item.brand" type="text" class="form-control" required>
+                </td>
+                <td>
+                    <input ng-model="item.model" type="text" class="form-control" required>
+                </td>
+                <td>
+                    <input ng-model="item.color" type="text" class="form-control" required>
+                </td>
+                <td>
+                    <button ng-click="items.splice($index,1)"
+                            class="btn btn-sm btn-primary glyphicon glyphicon-trash"></button>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <script cam-script type="text/form-script">
+        inject(["$http", function ($http) {
+            const variableManager = camForm.variableManager;
+
+            $scope.newItem = function () {
+                $scope.items.push({
+                    brand: "",
+                    model: "",
+                    color: ""
+                })
+            };
+            camForm.on('form-loaded', function () {
+                $http.get("/api/models").then(function (response) {
+                    $scope.items = response.data.content;
+                    variableManager.createVariable({
+                        name: 'request',
+                        type: 'json',
+                        value: $scope.items
+                    })
+                });
+            });
+        }]);
+    </script>
+</form>
+
+

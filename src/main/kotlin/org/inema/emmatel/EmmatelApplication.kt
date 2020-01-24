@@ -1,6 +1,11 @@
 package org.inema.emmatel
 
+import org.camunda.bpm.engine.delegate.DelegateExecution
+import org.camunda.bpm.engine.delegate.JavaDelegate
 import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication
+import org.camunda.connect.Connectors
+import org.camunda.connect.httpclient.HttpConnector
+import org.camunda.spin.Spin.JSON
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -10,10 +15,12 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.client.RestTemplate
 import java.util.*
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -45,13 +52,42 @@ interface PhoneModelRepository : JpaRepository<PhoneModel, UUID> {
 @RestController
 @RequestMapping("api/models")
 class ModelsController(val phoneModels: PhoneModelRepository) {
-
-
     @GetMapping
-    fun findModel(@RequestParam("q") q: String, pagination: Pageable) =
-            phoneModels.searchPhoneModels("%" + q.replace("\\s+", "%") + "%", pagination)
+    fun findModel(@RequestParam("q") q: String?, pagination: Pageable? = null) =
+            q?.let {
+                phoneModels.searchPhoneModels(
+                        q = q.asQuery(), pagination = pagination ?: Pageable.unpaged())
+            } ?: phoneModels.findAll(pagination ?: Pageable.unpaged())
+
+    fun String.asQuery() = "%" + this.toLowerCase().trim().replace(Regex("\\s+"), "%") + "%"
+}
+
+@Service
+class PhoneModelService {
+
+    fun savePhoneModels() = JavaDelegate {
+        JSON(it.getVariable("data")).elements().map { model ->
+
+        }
+    }
+}
+
+@Service
+class PurchaseService(val restTemplate: RestTemplate) {
+    fun logItems() = JavaDelegate { e ->
+        UUID.randomUUID().toString().let { id ->
+            JSON(e["request"]).elements().map { item ->
+                item.prop("purchaseId", id)
+            }
+        }.forEach {
+            Connectors.http<HttpConnector>().createRequest().post().url("http://localhost:9200/purchase/_doc").payload(it.toString()).contentType("application/json").execute()
+        }
+    }
 
 }
+
+
+operator fun DelegateExecution.get(key: String): Any? = getVariable(key)
 
 
 @Configuration
@@ -68,13 +104,13 @@ class Bootstrap {
                         (6..10).map {
                             "Galaxy S$it"
                         } to
-                                listOf("Black", "White","Cyan","Purple")
+                                listOf("Black", "White", "Cyan", "Purple")
                         ),
                 "Xiaomi" to (
                         (7..9).map {
                             "RedMi $it"
                         } to
-                                listOf("Black", "White","Cyan","Purple","Blue")
+                                listOf("Black", "White", "Cyan", "Purple", "Blue")
                         )
         ).flatMap {
             it.value.first.flatMap { model ->
@@ -88,4 +124,8 @@ class Bootstrap {
             }
         })
     }
+
+
+    @Bean
+    fun restTemplate() = RestTemplate()
 }
